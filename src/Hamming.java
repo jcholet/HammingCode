@@ -1,5 +1,4 @@
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Scanner;
 import java.util.regex.Pattern;
 
@@ -13,10 +12,15 @@ public class Hamming {
         if(Pattern.matches("[a-zA-Z]+", mot)){
             mot = toBinary(mot);
         }
-        generateWord(mot);
-        verifyWord(mot);
+        genererMot(mot);
+        verificationCode(mot);
     }
 
+    /**
+     * A function that permits to change a string into bits
+     * @param input the string that you want to convert
+     * @return the string in bits
+     */
     public static String toBinary(String input){
         StringBuilder stringBuilder = new StringBuilder();
         char[] chars = input.toCharArray();
@@ -27,100 +31,100 @@ public class Hamming {
         return stringBuilder.toString();
     }
 
-    public static void verifyWord(String word) throws Exception {
-        // Vérifie la longueur du mot
-        int n = 1;
-        while (Math.pow(2, n) - 1 < word.length()) {
-            n++;
+    /**
+     * A function that verify if the string is good or not
+     * @param str the bits you want to verify
+     */
+    public static void verificationCode(String str) {
+        int size = 1;
+        while (Math.pow(2, size) - 1 < str.length()) {
+            size++;
         }
 
-        System.out.println(Math.pow(2, n) - 1);
-        System.out.println(word.length());
+        System.out.println(Math.pow(2, size) - 1);
+        System.out.println(str.length());
 
-        if (Math.pow(2, n) - 1 != word.length()) {
-            throw new Exception("Mot de longueur invalide.");
+        if (Math.pow(2, size) - 1 != str.length()) {
+            throw new IllegalStateException("La longueur est invalide");
         }
 
-        // Définition de la portée des bits de controle
-        int[] control = new int[n];
+        int[] bitsDeControle = new int[size];
 
-        for (int c = 0; c < n; c++) {
-            for (Integer i : bitsControled(c, n)) {
-                int endroit = (int) Math.pow(2, n) - i - 1;
-                if (word.charAt(endroit) != '0' && word.charAt(endroit) != '1') {
-                    throw new Exception("Caractère invalide à l'indice " + endroit);
+        for (int c = 0; c < size; c++) {
+            for (Integer integer : controleDesBits(c, size)) {
+                int index = (int) Math.pow(2, size) - integer - 1;
+                if (str.charAt(index) != '0' && str.charAt(index) != '1') {
+                    throw new IllegalStateException(index + " : caractère invalide.");
                 }
 
-                control[c] = (control[c] + Character.getNumericValue(word.charAt(endroit))) % 2;
+                bitsDeControle[c] = (bitsDeControle[c] + Character.getNumericValue(str.charAt(index))) % 2;
             }
         }
-        // Debug
-        System.out.println(Arrays.toString(control));
 
-        // Conversion de l'adresse du bit incriminé.
-        int indiceRetour = 0;
-        for (int i = 0; i < n; i++) {
-            indiceRetour += control[i] * Math.pow(2, i);
+        int index = 0;
+        for (int i = 0; i < size; i++) {
+            index += bitsDeControle[i] * Math.pow(2, i);
         }
 
-        System.out.println(indiceRetour);
-        if (indiceRetour != 0) {
-            throw new Exception(word + " : erreur index " + (word.length() - indiceRetour));
+        System.out.println(index);
+        if (index != 0) {
+            throw new IllegalStateException((str.length() - index) + " : erreur");
         }
 
     }
 
-    public static String generateWord(String word) throws Exception {
-        // Vérifie la longueur du mot
-        int n = 1;
-        while ((Math.pow(2, n) - 1 - n) < word.length()) n++;
-
-        // S'il n'est pas à la bonne longueur, on l'étend de zéros afin qu'il fasse la bonne taille.
-        if (Math.pow(2, n) - 1 - n != word.length())
-            word = String.format("%" + (int)(Math.pow(2, n) - 1 - n) + "s", word).replace(' ', '0');
-
-        StringBuilder mot = new StringBuilder(word);
-
-        // On ajoute des bits de contrôle nuls aux bons endroits
-        for (int c = 0; c < n; c++) {
-            int endroit = mot.length() - (int) Math.pow(2, c) + 1;
-            mot.insert(endroit, '0');
+    /**
+     * A function that generate an hamming code
+     * @param str The string you want to generate as an hamming code
+     * @return the string as an hamming code
+     */
+    public static String genererMot(String str) {
+        //On vérifie que le mot est de bonne longueur
+        int size = 1;
+        while ((Math.pow(2, size) - 1 - size) < str.length()){
+            size++;
         }
 
-        // Et on adapte la valeur de tous ces bits de controle.
-        for (int c = 0; c < n; c++) {
-            int valeur = 0;
-            for (Integer i : bitsControled(c, n)) {
-                int endroit = (int) Math.pow(2, n) - i - 1;
-                if(mot.charAt(endroit) != '0' && mot.charAt(endroit) != '1')
-                    throw new Exception("Caractère invalide à l'indice " + endroit + " : " + mot.charAt(endroit));
+        if (Math.pow(2, size) - 1 - size != str.length()){
+            str = String.format("%" + (int)(Math.pow(2, size) - 1 - size) + "s", str).replace(' ', '0');
+        }
 
-                valeur = (valeur + Character.getNumericValue(mot.charAt(endroit))) % 2;
+        StringBuilder stringBuilder = new StringBuilder(str);
+
+        for (int c = 0; c < size; c++) {
+            int endroit = stringBuilder.length() - (int) Math.pow(2, c) + 1;
+            stringBuilder.insert(endroit, '0');
+        }
+
+        for (int i = 0; i < size; i++) {
+            int value = 0;
+            for (Integer integer : controleDesBits(i, size)) {
+                int place = (int) Math.pow(2, size) - integer - 1;
+                if(stringBuilder.charAt(place) != '0' && stringBuilder.charAt(place) != '1'){
+                    throw new IllegalStateException(stringBuilder.charAt(place) + " : erreur à index " + place);
+                }
+                value = (value + Character.getNumericValue(stringBuilder.charAt(place))) % 2;
             }
 
-            int endroit = mot.length() - (int) Math.pow(2, c);
-            System.out.println(endroit);
-            mot.setCharAt(endroit, Character.forDigit(valeur, 10));
+            int place = stringBuilder.length() - (int) Math.pow(2, i);
+            stringBuilder.setCharAt(place, Character.forDigit(value, 10));
         }
 
-        return mot.toString();
+        return stringBuilder.toString();
     }
 
-    private static ArrayList<Integer> bitsControled(int c, int n) {
-        ArrayList<Integer> retour = new ArrayList<>();
+    private static ArrayList<Integer> controleDesBits(int i, int n) {
+        ArrayList<Integer> integers = new ArrayList<>();
 
-        // On parcourt tous les nombres à n bits.
-        for (int i = 0; i < Math.pow(2, n); i++) {
-            // On change l'entier actuelle en chaîne binaire
-            String temp = String.format("%" + n + "s", Integer.toBinaryString(i)).replace(' ', '0');
-            int endroit = n - c - 1;
-            // Si le bit c est de 1, on ajoute le nombre parcouru dans les bits controlés à retourner
-            if (temp.charAt(endroit) == '1') {
-                retour.add(i);
+        for (int j = 0; j < Math.pow(2, n); j++) {
+            String str = String.format("%" + n + "s", Integer.toBinaryString(j)).replace(' ', '0');
+            int endroit = n - i - 1;
+            if (str.charAt(endroit) == '1') {
+                integers.add(j);
             }
         }
 
-        return retour;
+        return integers;
     }
 
 }
